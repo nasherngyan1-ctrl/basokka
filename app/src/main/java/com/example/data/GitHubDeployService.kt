@@ -717,30 +717,31 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: 3. Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: 4. Accept Android SDK Licenses & Install Build Tools
+      - name: 3. Configure Android SDK & Accept All Licenses (Zero-Fail Direct License Injection)
         run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager "platform-tools" "build-tools;34.0.0" "platforms;android-34" || true
+          SDK_DIR="${'$'}{ANDROID_HOME:-${'$'}{ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          mkdir -p "${'$'}SDK_DIR/licenses"
+          printf "\n8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n" > "${'$'}SDK_DIR/licenses/android-sdk-license"
+          printf "\n84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9f4b1727b84351f2910\n" > "${'$'}SDK_DIR/licenses/android-sdk-preview-license"
+          echo "ANDROID_HOME=${'$'}SDK_DIR" >> ${'$'}GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=${'$'}SDK_DIR" >> ${'$'}GITHUB_ENV
 
-      - name: 5. Setup Gradle
+      - name: 4. Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: 6. Ensure Android Assets & Keystore Ready
+      - name: 5. Ensure Android Assets Ready
         run: |
           mkdir -p app/src/main/assets
           if [ -f index.html ] && [ ! -f app/src/main/assets/index.html ]; then
             cp -f index.html app/src/main/assets/index.html
           fi
 
-      - name: 7. Assemble Debug APK
+      - name: 6. Assemble Debug APK
         run: gradle assembleDebug --no-daemon --stacktrace
 
-      - name: 8. Prepare APK Output & Job Summary
+      - name: 7. Prepare APK Output & Job Summary
         run: |
           APK_FILE=${'$'}(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
           cp "${'$'}APK_FILE" $repoSlug-debug.apk
@@ -749,7 +750,7 @@ jobs:
           echo "- **فایل**: \`$repoSlug-debug.apk\` (${'$'}APK_SIZE)" >> ${'$'}GITHUB_STEP_SUMMARY
           echo "- لە خوارەوەی ئەم پەڕەیە لە بەشی **Artifacts** یان **Releases** دایبەزێنە." >> ${'$'}GITHUB_STEP_SUMMARY
 
-      - name: 9. Upload Installable APK Artifact (Actions Tab)
+      - name: 8. Upload Installable APK Artifact (Actions Tab)
         uses: actions/upload-artifact@v4
         with:
           name: $repoSlug-apk
@@ -757,7 +758,7 @@ jobs:
           retention-days: 90
           if-no-files-found: error
 
-      - name: 10. Publish Direct APK to GitHub Releases
+      - name: 9. Publish Direct APK to GitHub Releases
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
         with:
@@ -769,7 +770,7 @@ jobs:
 
     /**
      * Returns the exact root `.github/workflows/build-apk.yml` for the main BASO Studio Android app itself
-     * (JDK 21 + Gradle 9.3.1 + Android SDK 36.1 + Keystore + Artifacts + Releases).
+     * (JDK 21 + Gradle 9.3.1 + Direct SDK License Injection + Keystore + Artifacts + Releases).
      */
     fun buildMainBasoStudioWorkflowYaml(): String = """
 name: Build & Release Android APK (BASO Studio)
@@ -805,20 +806,23 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: 3. Setup Android SDK & Accept All Licenses
-        uses: android-actions/setup-android@v3
-
-      - name: 4. Install Android SDK Platform 36.1 & Build Tools
+      - name: 3. Configure Android SDK & Accept All Licenses (Zero-Fail Direct License Injection)
         run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager "platform-tools" "build-tools;36.0.0" "platforms;android-36.1" || sdkmanager "platform-tools" "platforms;android-36" || true
+          SDK_DIR="${'$'}{ANDROID_HOME:-${'$'}{ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          mkdir -p "${'$'}SDK_DIR/licenses"
+          printf "\n8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n" > "${'$'}SDK_DIR/licenses/android-sdk-license"
+          printf "\n84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9f4b1727b84351f2910\n" > "${'$'}SDK_DIR/licenses/android-sdk-preview-license"
+          printf "\n601085b94cd77f0b54ff86406957099ebe79c4d6\n" > "${'$'}SDK_DIR/licenses/android-googletv-license"
+          printf "\n33b6a2b64607f11b759f320ef9dff4ae5c47d97a\n" > "${'$'}SDK_DIR/licenses/google-gdk-license"
+          echo "ANDROID_HOME=${'$'}SDK_DIR" >> ${'$'}GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=${'$'}SDK_DIR" >> ${'$'}GITHUB_ENV
 
-      - name: 5. Setup Gradle 9.3.1
+      - name: 4. Setup Gradle 9.3.1
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.3.1'
 
-      - name: 6. Prepare .env Secrets File
+      - name: 5. Prepare .env Secrets File
         run: |
           if [ ! -f .env ]; then
             if [ -f .env.example ]; then
@@ -831,7 +835,7 @@ jobs:
             echo "GEMINI_API_KEY=${'$'}{{ secrets.GEMINI_API_KEY }}" > .env
           fi
 
-      - name: 7. Prepare Android Signing Keystores (debug.keystore)
+      - name: 6. Prepare Android Signing Keystores (debug.keystore)
         run: |
           if [ ! -f debug.keystore ]; then
             if [ -f debug.keystore.base64 ]; then
@@ -849,10 +853,10 @@ jobs:
             fi
           fi
 
-      - name: 8. Compile & Assemble Android APK
-        run: gradle :app:assembleDebug --no-daemon --stacktrace
+      - name: 7. Compile & Assemble Android APK
+        run: gradle :app:assembleDebug --no-daemon -Dorg.gradle.configuration-cache=false --stacktrace
 
-      - name: 9. Package & Verify APK Output
+      - name: 8. Package & Verify APK Output
         run: |
           APK_PATH=${'$'}(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
           cp "${'$'}APK_PATH" BASO-Studio.apk
@@ -860,7 +864,7 @@ jobs:
           echo "### ✅ فایلی APK بە سەرکەوتوویی دروست کرا (BASO Studio APK Ready)" >> ${'$'}GITHUB_STEP_SUMMARY
           echo "- **ناوی فایل**: \`BASO-Studio.apk\` (${'$'}APK_SIZE)" >> ${'$'}GITHUB_STEP_SUMMARY
 
-      - name: 10. Upload APK to GitHub Actions Artifacts
+      - name: 9. Upload APK to GitHub Actions Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: BASO-Studio-APK
@@ -868,7 +872,7 @@ jobs:
           retention-days: 90
           if-no-files-found: error
 
-      - name: 11. Publish Direct APK to GitHub Releases
+      - name: 10. Publish Direct APK to GitHub Releases
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
         with:

@@ -31,20 +31,23 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: 3. Setup Android SDK & Accept All Licenses
-        uses: android-actions/setup-android@v3
-
-      - name: 4. Install Android SDK Platform 36.1 & Build Tools
+      - name: 3. Configure Android SDK & Accept All Licenses (Zero-Fail Direct License Injection)
         run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager "platform-tools" "build-tools;36.0.0" "platforms;android-36.1" || sdkmanager "platform-tools" "platforms;android-36" || true
+          SDK_DIR="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          mkdir -p "$SDK_DIR/licenses"
+          printf "\n8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n" > "$SDK_DIR/licenses/android-sdk-license"
+          printf "\n84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9f4b1727b84351f2910\n" > "$SDK_DIR/licenses/android-sdk-preview-license"
+          printf "\n601085b94cd77f0b54ff86406957099ebe79c4d6\n" > "$SDK_DIR/licenses/android-googletv-license"
+          printf "\n33b6a2b64607f11b759f320ef9dff4ae5c47d97a\n" > "$SDK_DIR/licenses/google-gdk-license"
+          echo "ANDROID_HOME=$SDK_DIR" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$SDK_DIR" >> $GITHUB_ENV
 
-      - name: 5. Setup Gradle 9.3.1
+      - name: 4. Setup Gradle 9.3.1
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.3.1'
 
-      - name: 6. Prepare .env Secrets File
+      - name: 5. Prepare .env Secrets File
         run: |
           if [ ! -f .env ]; then
             if [ -f .env.example ]; then
@@ -57,7 +60,7 @@ jobs:
             echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
           fi
 
-      - name: 7. Prepare Android Signing Keystores (debug.keystore)
+      - name: 6. Prepare Android Signing Keystores (debug.keystore)
         run: |
           if [ ! -f debug.keystore ]; then
             if [ -f debug.keystore.base64 ]; then
@@ -75,10 +78,10 @@ jobs:
             fi
           fi
 
-      - name: 8. Compile & Assemble Android APK
-        run: gradle :app:assembleDebug --no-daemon --stacktrace
+      - name: 7. Compile & Assemble Android APK
+        run: gradle :app:assembleDebug --no-daemon -Dorg.gradle.configuration-cache=false --stacktrace
 
-      - name: 9. Package & Verify APK Output
+      - name: 8. Package & Verify APK Output
         run: |
           APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
           if [ -z "$APK_PATH" ]; then
@@ -94,7 +97,7 @@ jobs:
           echo "- **SHA-256**: \`$APK_SHA256\`" >> $GITHUB_STEP_SUMMARY
           echo "- **چۆنیەتی دابەزاندن**: لە خوارەوەی ئەم پەڕەیە لە بەشی **Artifacts** کلیک لەسەر **BASO-Studio-APK** بکە، یان لە بەشی **Releases** ڕاستەوخۆ دایبەزێنە." >> $GITHUB_STEP_SUMMARY
 
-      - name: 10. Upload APK to GitHub Actions Artifacts
+      - name: 9. Upload APK to GitHub Actions Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: BASO-Studio-APK
@@ -102,7 +105,7 @@ jobs:
           retention-days: 90
           if-no-files-found: error
 
-      - name: 11. Publish Direct APK to GitHub Releases
+      - name: 10. Publish Direct APK to GitHub Releases
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
         with:
