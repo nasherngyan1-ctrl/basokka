@@ -1,0 +1,116 @@
+name: Build & Release Android APK (BASO Studio)
+
+on:
+  push:
+    branches:
+      - "**"
+    tags-ignore:
+      - "v*"
+  pull_request:
+    branches:
+      - "main"
+      - "master"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  build-apk:
+    name: Build Installable Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 2. Set up JDK 21 (Required for AGP 9.1.1 & Gradle 9.3.1)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: 3. Setup Android SDK & Accept All Licenses
+        uses: android-actions/setup-android@v3
+
+      - name: 4. Install Android SDK Platform 36.1 & Build Tools
+        run: |
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sdkmanager "platform-tools" "build-tools;36.0.0" "platforms;android-36.1" || sdkmanager "platform-tools" "platforms;android-36" || true
+
+      - name: 5. Setup Gradle 9.3.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
+
+      - name: 6. Prepare .env Secrets File
+        run: |
+          if [ ! -f .env ]; then
+            if [ -f .env.example ]; then
+              cp .env.example .env
+            else
+              echo "GEMINI_API_KEY=" > .env
+            fi
+          fi
+          if [ -n "${{ secrets.GEMINI_API_KEY }}" ]; then
+            echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
+          fi
+
+      - name: 7. Prepare Android Signing Keystores (debug.keystore)
+        run: |
+          if [ ! -f debug.keystore ]; then
+            if [ -f debug.keystore.base64 ]; then
+              tr -d '\n\r ' < debug.keystore.base64 | base64 -d > debug.keystore
+            else
+              keytool -genkeypair -v \
+                -keystore debug.keystore \
+                -alias androiddebugkey \
+                -keyalg RSA \
+                -keysize 2048 \
+                -validity 10000 \
+                -storepass android \
+                -keypass android \
+                -dname "CN=Android Debug,O=Android,C=US"
+            fi
+          fi
+
+      - name: 8. Compile & Assemble Android APK
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+
+      - name: 9. Package & Verify APK Output
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "Error: APK file was not generated!"
+            exit 1
+          fi
+          cp "$APK_PATH" BASO-Studio.apk
+          APK_SIZE=$(du -h BASO-Studio.apk | cut -f1)
+          APK_SHA256=$(sha256sum BASO-Studio.apk | cut -d' ' -f1)
+          echo "### ✅ فایلی APK بە سەرکەوتوویی دروست کرا (BASO Studio APK Ready)" >> $GITHUB_STEP_SUMMARY
+          echo "- **ناوی فایل (APK File)**: \`BASO-Studio.apk\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **قەبارە (Size)**: \`$APK_SIZE\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **SHA-256**: \`$APK_SHA256\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **چۆنیەتی دابەزاندن**: لە خوارەوەی ئەم پەڕەیە لە بەشی **Artifacts** کلیک لەسەر **BASO-Studio-APK** بکە، یان لە بەشی **Releases** ڕاستەوخۆ دایبەزێنە." >> $GITHUB_STEP_SUMMARY
+
+      - name: 10. Upload APK to GitHub Actions Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: BASO-Studio-APK
+          path: BASO-Studio.apk
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: 11. Publish Direct APK to GitHub Releases
+        if: github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: "BASO Studio APK (Build #${{ github.run_number }})"
+          body: |
+            ### 📲 BASO Studio — فایلی دامەزراندنی ئەندرۆید (APK)
+            - **Build Number**: #${{ github.run_number }}
+            - **Direct APK Download**: کرتە لەسەر `BASO-Studio.apk` بکە لە خوارەوە بۆ دابەزاندن و دامەزراندنی ڕاستەوخۆ لەسەر مۆبایلەکەت.
+          files: BASO-Studio.apk
+          generate_release_notes: true

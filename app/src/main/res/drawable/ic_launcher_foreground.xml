@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Outer Cyan Hexagonal Crest -->
+    <path
+        android:pathData="M54,20 L83,37 L83,71 L54,88 L25,71 L25,37 Z"
+        android:strokeWidth="2.4"
+        android:strokeColor="#00E5CC"
+        android:fillColor="#120C1E30" />
+
+    <!-- Inner Gold Corner Accents -->
+    <path
+        android:pathData="M54,24 L79,38.5 L79,69.5 L54,84 L29,69.5 L29,38.5 Z"
+        android:strokeWidth="1.2"
+        android:strokeColor="#88F5C518"
+        android:fillColor="#00000000" />
+
+    <!-- Cyan Shadow Offset of Sculpted Letter B -->
+    <path
+        android:fillColor="#00E5CC"
+        android:pathData="M40.5,33.5 L58.5,33.5 C66.0,33.5 70.5,37.2 70.5,43.0 C70.5,47.2 68.0,50.3 63.8,51.6 C69.2,52.9 72.5,56.5 72.5,61.8 C72.5,68.5 67.2,72.5 58.8,72.5 L40.5,72.5 Z M49.5,40.5 L49.5,48.8 L56.8,48.8 C60.2,48.8 62.0,47.2 62.0,44.6 C62.0,42.0 60.2,40.5 56.8,40.5 Z M49.5,55.2 L49.5,65.2 L57.8,65.2 C61.6,65.2 63.8,63.5 63.8,60.2 C63.8,56.9 61.6,55.2 57.8,55.2 Z" />
+
+    <!-- Primary Metallic Gold Sculpted Letter B -->
+    <path
+        android:pathData="M38.5,32.0 L56.5,32.0 C64.0,32.0 68.5,35.7 68.5,41.5 C68.5,45.7 66.0,48.8 61.8,50.1 C67.2,51.4 70.5,55.0 70.5,60.3 C70.5,67.0 65.2,71.0 56.8,71.0 L38.5,71.0 Z M47.5,39.0 L47.5,47.3 L54.8,47.3 C58.2,47.3 60.0,45.7 60.0,43.1 C60.0,40.5 58.2,39.0 54.8,39.0 Z M47.5,53.7 L47.5,63.7 L55.8,63.7 C59.6,63.7 61.8,62.0 61.8,58.7 C61.8,55.4 59.6,53.7 55.8,53.7 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="38"
+                android:startY="32"
+                android:endX="70"
+                android:endY="71"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FFE57F" />
+                <item android:offset="0.5" android:color="#F5C518" />
+                <item android:offset="1.0" android:color="#D49B00" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Top Sparkle Star Accent -->
+    <path
+        android:fillColor="#00E5CC"
+        android:pathData="M74,28 L75.6,31.4 L79,33 L75.6,34.6 L74,38 L72.4,34.6 L69,33 L72.4,31.4 Z" />
+</vector>

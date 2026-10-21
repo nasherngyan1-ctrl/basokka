@@ -1,0 +1,8 @@
+{
+  "name": "BASO Studio",
+  "description": "BASO AI Builder (ستۆدیۆی فریلانسەر) — Personal AI studio for designing and building websites, web apps, and Android apps with live preview, code inspector, and ZIP export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

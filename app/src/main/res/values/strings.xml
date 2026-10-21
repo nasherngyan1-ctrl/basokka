@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">BASO Studio</string>
+    <string name="studio_subtitle">ستۆدیۆی فریلانسەر</string>
+    <string name="studio_tagline">هێزی خەلاقیت بە دیجیتاڵ دەکات</string>
+    <string name="btn_get_started">دەست پێ بکە</string>
+    <string name="greeting_hello">سڵاو، 👋</string>
+    <string name="greeting_welcome">بەخێربێیت بۆ BASO</string>
+    <string name="hero_title">دروستکردنی ئەپ و وێبسایت</string>
+    <string name="hero_subtitle">بە شێوەیەکی ئاسان و خێرایی</string>
+    <string name="hero_cta">بەرهەمی نوێ دروست بکە</string>
+    <string name="section_categories">بەشەکان</string>
+    <string name="section_projects">پڕۆژەکانت</string>
+    <string name="action_see_all">بینین هەموو</string>
+    <string name="nav_home">ماڵەوە</string>
+    <string name="nav_projects">پڕۆژەکان</string>
+    <string name="nav_tools">ئامێرەکان</string>
+    <string name="nav_settings">ڕێکخستن</string>
+</resources>
